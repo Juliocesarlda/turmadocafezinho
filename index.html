@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TURMA DO CAFÉ - LUGAR PARA FAZER AMIGOS E FORTALECER AMIZADES</title>
+<title>TURMA DO CAFÉ - A rede de quem monta o que imprime</title>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -257,7 +257,12 @@ let avisos = [];
 let fotoBase64 = null;
 
 // ===== INICIO =====
-document.getElementById('link-chat').href = 'batepapo.html';
+//document.getElementById('link-chat').href = 'batepapo.html';
+
+document.getElementById('link-chat').onclick = function() {
+    const nome = localStorage.getItem('turmadocafe_user');
+    this.href = 'batepapo.html?usuario=' + encodeURIComponent(nome);
+};
 
 if(usuarioAtual){ entrarApp(usuarioAtual); }
 
