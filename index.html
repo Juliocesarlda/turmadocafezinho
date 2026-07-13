@@ -150,9 +150,15 @@ header h2{ margin: 0; font-size: 22px; }
 
         <h3 id="nome-perfil">Peão</h3>
         <hr style="margin: 10px 0;">
-        <p><b>🟢 ONLINE AGORA</b></p>
-        <p id="contador-online" style="font-size: 12px; color: var(--azul-orkut); font-weight: bold;"></p>
-        <ul id="lista-online"></ul>
+        p><b>🟢 ONLINE AGORA</b></p>
+<p id="contador-online" style="font-size: 12px; color: var(--azul-orkut); font-weight: bold;"></p>
+
+<!-- NOVA LISTA: USUÁRIOS CONECTADOS -->
+<ul id="lista-usuarios-conectados" style="padding: 0; list-style: none; font-size: 14px;"></ul>
+
+<!-- NOVA LISTA: ÚLTIMO A ENTRAR -->
+<p style="margin-top: 15px;"><b>🕒 ÚLTIMO A ENTRAR</b></p>
+<div id="ultimo-usuario" style="font-size: 14px; font-weight: bold; color: var(--verde);"></div>
       </div>
     </aside>
 
@@ -255,6 +261,29 @@ let usuarioAtual = localStorage.getItem(CHAVE_USER);
 let feed = [];
 let avisos = [];
 let fotoBase64 = null;
+
+// Monitora todos os usuários online
+db.ref('status').on('value', (snapshot) => {
+  const listaOnline = document.getElementById('lista-usuarios-conectados');
+  const ultimoUserDiv = document.getElementById('ultimo-usuario');
+  listaOnline.innerHTML = "";
+  
+  let usuarios = [];
+  snapshot.forEach((child) => {
+    usuarios.push(child.key);
+    // Adiciona na lista de conectados
+    const li = document.createElement('li');
+    li.innerText = `● ${child.key}`;
+    listaOnline.appendChild(li);
+  });
+
+  // Exibe o último usuário da lista (o mais recente)
+  if (usuarios.length > 0) {
+    ultimoUserDiv.innerText = usuarios[usuarios.length - 1];
+  } else {
+    ultimoUserDiv.innerText = "Ninguém por aqui...";
+  }
+});
 
 // ===== INICIO =====
 //document.getElementById('link-chat').href = 'batepapo.html';
