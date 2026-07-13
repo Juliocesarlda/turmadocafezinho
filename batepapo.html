@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chat Firebase</title>
+  <title>Sala de Bate-Papo</title>
   <style>
     body { font-family: Arial, sans-serif; background-color: var(--bg-color, #f0f0f0); color: var(--text-color, #000); }
     .chat-container { width: 80%; margin: 40px auto; padding: 20px; background-color: var(--container-bg, #fff); border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
@@ -16,62 +16,115 @@
 </head>
 <body>
 
-  <div id="chat-container" class="chat-container">
+  <div class="main-wrapper" style="display: flex; gap: 20px; width: 90%; margin: 20px auto;">
+  <!-- Coluna Lateral -->
+  <div id="user-list" style="width: 250px; background: #eee; padding: 15px; border-radius: 10px;">
+    <h3>Usuários</h3>
+    <div id="online-users"></div>
+  </div>
+
+  <!-- Chat Principal -->
+  <div id="chat-container" class="chat-container" style="flex: 1; margin: 0;">
     <div class="chat-header">
-      <h2>Sala de Bate-Papo</h2>
+      <h2>Sala de Bate-Papo <span id="target-user-display"></span></h2>
     </div>
     <div class="chat-messages" id="chat-messages"></div>
     <input type="text" id="message-input" placeholder="Digite sua mensagem...">
     <button id="send-button">Enviar</button>
   </div>
+</div>
 
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0BXvoLhMipHUP_zo6lebe2O28ZCeFVS4",
-      authDomain: "turmadocafezinho.firebaseapp.com",
-      databaseURL: "https://turmadocafezinho-default-rtdb.firebaseio.com",
-      projectId: "turmadocafezinho",
-      storageBucket: "turmadocafezinho.firebasestorage.app",
-      messagingSenderId: "652356392965",
-      appId: "1:652356392965:web:4785b413ddc2ec6252a46c"
-    };  
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+// Configuração e Inicialização
+const firebaseConfig = {
+  apiKey: "AIzaSyD0BXvoLhMipHUP_zo6lebe2O28ZCeFVS4",
+  authDomain: "turmadocafezinho.firebaseapp.com",
+  databaseURL: "https://turmadocafezinho-default-rtdb.firebaseio.com",
+  projectId: "turmadocafezinho",
+  storageBucket: "turmadocafezinho.firebasestorage.app",
+  messagingSenderId: "652356392965",
+  appId: "1:652356392965:web:4785b413ddc2ec6252a46c"
+};
 
-    const chatMessages = document.getElementById('chat-messages');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const auth = firebase.auth();
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const username = urlParams.get('usuario') || "Anônimo";
-    const avatarEmoji = ['😀','😎','🧠','👻','🐱'][Math.floor(Math.random() * 5)];
+const chatMessages = document.getElementById('chat-messages');
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
+const onlineUsersList = document.getElementById('online-users');
+const targetUserDisplay = document.getElementById('target-user-display');
 
-    function renderMessage(data) {
-      const msg = data.val();
-      const div = document.createElement('div');
-      div.className = 'chat-message';
-      div.innerHTML = `<b>${msg.emoji} ${msg.user}</b>: ${msg.text}`;
-      chatMessages.appendChild(div);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+const urlParams = new URLSearchParams(window.location.search);
+const username = urlParams.get('usuario') || "Anônimo";
+let targetUser = null;
 
-    auth.signInAnonymously().then(() => {
-      db.ref("mensagens").limitToLast(50).on("child_added", renderMessage);
+// Marcar usuário como online
+auth.signInAnonymously().then(() => {
+  const userRef = db.ref("usuarios/" + username);
+  userRef.set({ status: "online", inChat: true });
+  userRef.onDisconnect().remove(); // Remove da lista ao fechar o navegador
+});
+
+// Renderizar lista de usuários lateral
+db.ref("usuarios").on("value", (snapshot) => {
+  onlineUsersList.innerHTML = "";
+  snapshot.forEach((child) => {
+    const user = child.key;
+    const div = document.createElement('div');
+    div.style.marginBottom = "10px";
+    div.innerHTML = `
+      <span>${user}</span>
+      <button onclick="setTarget('${user}')" style="margin-left: 5px;">Chamar</button>
+    `;
+    onlineUsersList.appendChild(div);
+  });
+});
+
+// Função para selecionar destinatário
+window.setTarget = (name) => {
+  targetUser = name;
+  targetUserDisplay.innerText = `(para: ${name})`;
+};
+
+// Renderizar mensagens
+function renderMessage(data) {
+  const msg = data.val();
+  // Se for privada e não for para mim ou de mim, ignora (opcional)
+  const isPrivate = msg.to && (msg.to !== username && msg.user !== username);
+  if (isPrivate) return;
+
+  const div = document.createElement('div');
+  div.className = 'chat-message';
+  div.innerHTML = `<b>${msg.user} ${msg.to ? '→ ' + msg.to : ''}</b>: ${msg.text}`;
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+db.ref("mensagens").limitToLast(50).on("child_added", renderMessage);
+
+// Enviar mensagem
+sendButton.onclick = () => {
+  const text = messageInput.value.trim();
+  if (text) {
+    db.ref("mensagens").push({ 
+      user: username, 
+      to: targetUser, 
+      text: text, 
+      timestamp: Date.now() 
     });
+    messageInput.value = '';
+    targetUser = null; // Reseta após enviar
+    targetUserDisplay.innerText = '';
+  }
+};
 
-    sendButton.onclick = () => {
-      const text = messageInput.value.trim();
-      if (text) {
-        db.ref("mensagens").push({ user: username, emoji: avatarEmoji, text: text, timestamp: Date.now() });
-        messageInput.value = '';
-      }
-    };
   </script>
 </body>
 </html>
