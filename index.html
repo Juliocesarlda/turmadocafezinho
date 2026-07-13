@@ -150,7 +150,7 @@ header h2{ margin: 0; font-size: 22px; }
 
         <h3 id="nome-perfil">Peão</h3>
         <hr style="margin: 10px 0;">
-        <p><b>🟢 ONLINE AGORA</b></p>
+        p><b>🟢 ONLINE AGORA</b></p>
 <p id="contador-online" style="font-size: 12px; color: var(--azul-orkut); font-weight: bold;"></p>
 
 <!-- NOVA LISTA: USUÁRIOS CONECTADOS -->
@@ -480,9 +480,18 @@ function renderFeed(){
         <div style="margin-top:10px; font-size: 14px;">
           ${Object.keys(contagem).map(e => `<span>${e} ${contagem[e]}</span>`).join(' ')}
         </div>
+      </div> 
+
+      <!-- COLOQUE O CÓDIGO AQUI -->
+      <div id="area-comentarios-${p.key}" style="margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 5px;">
+        <div id="lista-comentarios-${p.key}" style="font-size: 13px; margin-bottom: 5px;"></div>
+        <input type="text" id="input-comentario-${p.key}" placeholder="Escreva um comentário..." style="width: 70%; padding: 5px;">
+        <button onclick="enviarComentario('${p.key}')" style="padding: 5px 10px;">Ok</button>
       </div>
-    </div>`;
+
+    </div>`; // Fecha a div class="card post"
 }).join('');
+feed.forEach(p => carregarComentarios(p.key));
 }
 
 function excluirPost(postId, autorPost) {
