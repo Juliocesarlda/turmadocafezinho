@@ -339,6 +339,37 @@ db.ref('clima').on('value', (s) => {
   }
 });
 
+// Enviar comentário para o Firebase
+function enviarComentario(postId) {
+  const input = document.getElementById(`input-comentario-${postId}`);
+  const texto = input.value.trim();
+  
+  if (texto) {
+    db.ref(`comentarios/${postId}`).push({
+      autor: usuarioAtual,
+      texto: texto,
+      hora: new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'})
+    });
+    input.value = '';
+  } else {
+    alert("Digite algo para comentar!");
+  }
+}
+
+// Carregar e listar comentários de um post específico
+function carregarComentarios(postId) {
+  const lista = document.getElementById(`lista-comentarios-${postId}`);
+  if (!lista) return; // Segurança caso a lista não exista
+  
+  db.ref(`comentarios/${postId}`).on('value', (snapshot) => {
+    lista.innerHTML = "";
+    snapshot.forEach((child) => {
+      const c = child.val();
+      lista.innerHTML += `<div style="margin-bottom: 4px;"><b>${c.autor}:</b> ${c.texto}</div>`;
+    });
+  });
+}
+
 // Função para registrar o voto do usuário
 function votarSatisfacao(opcao) {
   // Salva ou atualiza o voto do usuário no Firebase
