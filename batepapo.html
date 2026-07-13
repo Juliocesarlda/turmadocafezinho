@@ -12,6 +12,24 @@
     .chat-message { margin-bottom: 10px; padding: 10px; border-bottom: 1px solid #ddd; }
     #message-input { width: 75%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
     #send-button { padding: 10px 20px; border-radius: 5px; background-color: #333; color: white; border: none; cursor: pointer; }
+    
+    /* Ajuste para dispositivos móveis */
+@media (max-width: 600px) {
+  .main-wrapper {
+    flex-direction: column !important; /* Empilha coluna e chat */
+    width: 95% !important;
+  }
+  
+  #user-list {
+    width: 100% !important; /* Ocupa toda a largura */
+    margin-bottom: 10px;
+  }
+
+  #message-input {
+    width: 60% !important; /* Ajusta o campo de texto para telas pequenas */
+  }
+}
+
   </style>
 </head>
 <body>
