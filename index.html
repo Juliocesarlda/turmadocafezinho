@@ -233,6 +233,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+window.onbeforeunload = function() {
+  const nomeLimpo = usuarioAtual.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '');
+  db.ref('status/' + nomeLimpo).remove();
+};
+
 // ===== PRESENÇA (PEÕES ONLINE) =====
 const conectadosRef = db.ref('status');
 
